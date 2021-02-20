@@ -5,7 +5,7 @@ from processors.parser import Parser
 
 def execute(raw: str, fn: str):
     # Construct file object
-    file = File(raw, fn)
+    file = File(fn, raw)
 
     # Get tokens from laxer
     lexer = Lexer(raw, file)
