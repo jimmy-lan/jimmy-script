@@ -10,7 +10,7 @@ However, I never had a chance to design a laxer and add the functionalities allo
 It has been almost 5 years since when I created the simple interpreter.
 Over the years, I find myself berried in piles and piles of [CRUD applications](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete).
 For example, in the year 2020, I made at least 3000 commits to some kind of [CRUD application](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete), as it is the most common thing that all of us face at work.
-I think it's' the time for me to get out of that pile for just a little bit.
+I think it's the time for me to get out of that pile for just a little bit.
 
 As my responsibilities grow, I realize that I begin to have less and less time to learn and explore the things that I always wanted to learn.
 I don't like this trend, so I joined UofT Hacks to get mentor support and motivate myself to complete this ambitious project.
@@ -22,5 +22,7 @@ But the concept should be the same if I were to build this on top of any other p
 
 This project is created solely for learning purposes.
 An anti-purpose for this project, for example, would be to create a programming language that is of high performance or is actually usable in some daily tasks.
+
+*I swear that I have no idea of what a laxer is, how to build a programming language, or even how to start this project before today (2021-02-20).*
 
 
