@@ -3,8 +3,8 @@ from typing import Tuple, List
 from constants import SPACES, DIGITS
 from errors.error import Error
 from errors.unexpected_token_error import UnexpectedTokenError
-from position import Position, Interval, File
-from token import Token, TOKEN_EOF, TOKEN_INT, TOKEN_FLOAT
+from models.position import Position, Interval, File
+from models.token import Token, TOKEN_EOF, TOKEN_INT, TOKEN_FLOAT
 
 
 class Lexer:

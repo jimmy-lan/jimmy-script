@@ -1,4 +1,4 @@
-from position import Interval
+from models.position import Interval
 
 
 class Error:

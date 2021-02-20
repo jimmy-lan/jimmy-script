@@ -1,4 +1,4 @@
-from token import Token
+from models.token import Token
 
 
 class Node:

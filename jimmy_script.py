@@ -1,4 +1,4 @@
-from position import File
+from models.position import File
 from processors.laxer import Lexer
 from processors.parser import Parser
 

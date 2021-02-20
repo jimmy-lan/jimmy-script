@@ -1,5 +1,5 @@
 from errors.error import Error
-from position import Interval
+from models.position import Interval
 
 
 class BadSyntaxError(Error):

@@ -1,4 +1,3 @@
-from collections import Iterable
 from typing import List
 
 from errors.bad_syntax_error import BadSyntaxError
@@ -7,7 +6,7 @@ from nodes.bin_op_node import BinOpNode
 from nodes.node import Node
 from nodes.number_node import NumberNode
 from nodes.unary_op_node import UnaryOpNode
-from token import *
+from models.token import *
 
 
 class ParserPromise:
