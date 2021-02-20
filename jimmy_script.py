@@ -23,7 +23,7 @@ CHAR_TO_TOKEN = {
 
 
 class Token:
-    def __init__(self, t_type: str, value: any = "") -> None:
+    def __init__(self, t_type: str, value: any = None) -> None:
         self.type = t_type
         self.value = value
 
@@ -48,8 +48,8 @@ class UnexpectedTokenError(Error):
 class Lexer:
     def __init__(self, expr: str) -> None:
         self.expr = expr
-        self.pos = -1
-        self.curr = None
+        self.pos = 0
+        self.curr = expr[0] if len(expr) > 0 else None
 
     def next(self) -> None:
         self.pos += 1
@@ -65,7 +65,7 @@ class Lexer:
             if self.curr in SPACES:
                 self.next()
             elif self.curr in DIGITS:
-                self.get_number()
+                tokens.append(self.get_number())
             elif self.curr in CHAR_TO_TOKEN:
                 tokens.append(CHAR_TO_TOKEN[self.curr])
                 self.next()
