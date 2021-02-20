@@ -159,12 +159,12 @@ class BinOpNode(Node):
 
 
 class UnaryOpNode(Node):
-    def __init__(self, token: Token, node: Node):
+    def __init__(self, token: Token, child: Node):
         super().__init__(token)
-        self.node = node
+        self.child = child
 
     def __repr__(self):
-        return f"{self.token}:{self.node}"
+        return f"({self.token}, {self.child})"
 
 
 class ParserPromise:
@@ -213,9 +213,25 @@ class Parser:
         """
         promise = ParserPromise()
         token = self.curr
-        if token.type in NUMBER_TOKENS:
+        if token.type in [TOKEN_PLUS, TOKEN_MINUS]:
+            promise.register(self.next())
+            factor = promise.register(self.factor())
+            if promise.error:
+                return promise
+            return promise.resolve(UnaryOpNode(token, factor))
+        elif token.type in NUMBER_TOKENS:
             promise.register(self.next())
             return promise.resolve(NumberNode(token))
+        elif token.type == TOKEN_LBRACKET:
+            promise.register(self.next())
+            expr = promise.register(self.expr())
+            if promise.error:
+                return promise
+            if self.curr.type == TOKEN_RBRACKET:
+                promise.register(self.next())
+                return promise.resolve(expr)
+            else:
+                return promise.reject(BadSyntaxError("Missing ')'.", self.curr.pos))
         return promise.reject(BadSyntaxError(f"Expecting a number, got '{token}'.", token.pos))
 
     def term(self):
