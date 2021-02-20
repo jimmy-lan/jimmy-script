@@ -11,6 +11,7 @@ TOKEN_LBRACKET = "LBRACKET"
 TOKEN_RBRACKET = "RBRACKET"
 
 SPACES = " \t"
+NEW_LINE = "\n"
 DIGITS = "0123456789"
 CHAR_TO_TOKEN = {
     "+": TOKEN_PLUS,
@@ -31,30 +32,54 @@ class Token:
         return f"{self.type}: {self.value}" if self.value else f"{self.type}"
 
 
+class Position:
+    def __init__(self, idx: int, row: int, col: int, fn: str) -> None:
+        self.idx = idx
+        self.row = row
+        self.col = col
+        self.fn = fn
+
+    def next(self, curr: str):
+        self.idx += 1
+
+        if curr == NEW_LINE:
+            self.row += 1
+            self.col = 0
+        else:
+            self.col += 1
+
+        return self
+
+    def copy(self):
+        return Position(self.idx, self.row, self.col, self.fn)
+
+
 class Error:
-    def __init__(self, name: str, msg: str) -> None:
+    def __init__(self, name: str, msg: str, pos: Position) -> None:
         self.name = name
         self.msg = msg
+        self.pos = pos
 
-    def __str__(self):
-        return f"{self.name}: \n\t{self.msg}"
+    def __str__(self) -> str:
+        return f"{self.name}: \n\t{self.msg}\nAt Line {self.pos.row + 1} in File {self.pos.fn}."
 
 
 class UnexpectedTokenError(Error):
-    def __init__(self, msg, name: str):
-        super().__init__("Unexpected Token", msg)
+    def __init__(self, msg: str, pos: Position) -> None:
+        super().__init__("Unexpected Token", msg, pos)
 
 
 class Lexer:
-    def __init__(self, expr: str) -> None:
+    def __init__(self, expr: str, fn: str) -> None:
         self.expr = expr
-        self.pos = 0
+        self.pos = Position(0, 0, 0, fn)
         self.curr = expr[0] if len(expr) > 0 else None
 
     def next(self) -> None:
-        self.pos += 1
-        if self.pos < len(self.expr):
-            self.curr = self.expr[self.pos]
+        self.pos.next(self.curr)
+        idx = self.pos.idx
+        if idx < len(self.expr):
+            self.curr = self.expr[idx]
         else:
             self.curr = None
 
@@ -71,10 +96,11 @@ class Lexer:
                 self.next()
             else:
                 token = self.curr
-                pos = self.pos
+                pos = self.pos.col
                 self.next()
                 return [], UnexpectedTokenError(
-                    f"Unexpected token '{token}' at position {pos}."
+                    f"Unexpected token '{token}' at position {pos}.",
+                    self.pos
                 )
 
         return tokens, None
@@ -97,6 +123,6 @@ class Lexer:
             return Token(TOKEN_FLOAT, float(parsed_str))
 
 
-def evaluate(expr: str) -> Tuple[List[str], Error or None]:
-    lexer = Lexer(expr)
+def evaluate(expr: str, fn: str) -> Tuple[List[str], Error or None]:
+    lexer = Lexer(expr, fn)
     return lexer.get_tokens()
