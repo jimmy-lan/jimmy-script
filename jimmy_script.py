@@ -123,6 +123,29 @@ class Lexer:
             return Token(TOKEN_FLOAT, float(parsed_str))
 
 
+class Node:
+    def __init__(self, token: any):
+        self.token = token
+
+    def __repr__(self):
+        return str(self.token)
+
+
+class NumberNode(Node):
+    def __init__(self, token: int or float):
+        super().__init__(token)
+
+
+class BinOpNode(Node):
+    def __init__(self, token: str, left: Node, right: Node):
+        super().__init__(token)
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return f"({self.left}, {self.token}, {self.right})"
+
+
 def evaluate(expr: str, fn: str) -> Tuple[List[str], Error or None]:
     lexer = Lexer(expr, fn)
     return lexer.get_tokens()
