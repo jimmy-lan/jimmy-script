@@ -1,0 +1,3 @@
+SPACES = " \t"
+NEW_LINE = "\n"
+DIGITS = "0123456789"
