@@ -1,4 +1,5 @@
 from models.position import File
+from processors.interpreter import Interpreter
 from processors.laxer import Lexer
 from processors.parser import Parser
 
@@ -16,5 +17,11 @@ def execute(raw: str, fn: str):
     # Get abstract syntax tree
     parser = Parser(tokens)
     ast = parser.parse()
+    if ast.error:
+        return None, ast.error
 
-    return ast.node, ast.error
+    # Interpret AST
+    interpreter = Interpreter()
+    interpreter.traverse(ast.node)
+
+    return None, None
