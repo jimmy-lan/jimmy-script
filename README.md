@@ -3,7 +3,7 @@
 ## Purpose
 
 I always wanted to create my very own programming language. 
-My exploration of interpreter began when I was 15. 
+My exploration of interpreters began when I was 15. 
 At that time, I built an interpreter using recursion and built-in string methods in the BASIC language to evaluate expressions entered by the users.
 However, I never had a chance to design a laxer and add the functionalities allowing users to write script files (e.g. adding if statements and for loops).
 

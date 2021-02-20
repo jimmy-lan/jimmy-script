@@ -9,6 +9,7 @@ TOKEN_MULTIPLY = "MULTIPLY"
 TOKEN_DIVISION = "DIVISION"
 TOKEN_LBRACKET = "LBRACKET"
 TOKEN_RBRACKET = "RBRACKET"
+TOKEN_EOF = "EOF"
 
 SPACES = " \t"
 NEW_LINE = "\n"
@@ -25,15 +26,6 @@ CHAR_TO_TOKEN = {
 NUMBER_TOKENS = (TOKEN_INT, TOKEN_FLOAT)
 
 
-class Token:
-    def __init__(self, t_type: str, value: any = None) -> None:
-        self.type = t_type
-        self.value = value
-
-    def __repr__(self) -> str:
-        return f"{self.type}: {self.value}" if self.value else f"{self.type}"
-
-
 class Position:
     def __init__(self, idx: int, row: int, col: int, fn: str) -> None:
         self.idx = idx
@@ -41,7 +33,7 @@ class Position:
         self.col = col
         self.fn = fn
 
-    def next(self, curr: str):
+    def next(self, curr: str = None):
         self.idx += 1
 
         if curr == NEW_LINE:
@@ -54,6 +46,16 @@ class Position:
 
     def copy(self):
         return Position(self.idx, self.row, self.col, self.fn)
+
+
+class Token:
+    def __init__(self, t_type: str, value: any = None, pos: Position = None,) -> None:
+        self.type = t_type
+        self.value = value
+        self.pos = pos
+
+    def __repr__(self) -> str:
+        return f"{self.type}: {self.value}" if self.value else f"{self.type}"
 
 
 class Error:
@@ -100,7 +102,7 @@ class Lexer:
             elif self.curr in DIGITS:
                 tokens.append(self.get_number())
             elif self.curr in CHAR_TO_TOKEN:
-                tokens.append(Token(CHAR_TO_TOKEN[self.curr]))
+                tokens.append(Token(CHAR_TO_TOKEN[self.curr], pos=self.pos))
                 self.next()
             else:
                 token = self.curr
@@ -111,11 +113,13 @@ class Lexer:
                     self.pos
                 )
 
+        tokens.append(Token(TOKEN_EOF, pos=self.pos))
         return tokens, None
 
     def get_number(self) -> Token:
         parsed_str = ""
         num_dots = 0
+        pos = self.pos.copy()
 
         while self.curr is not None and self.curr in DIGITS + ".":
             if self.curr == ".":
@@ -126,9 +130,9 @@ class Lexer:
             self.next()
 
         if num_dots == 0:
-            return Token(TOKEN_INT, int(parsed_str))
+            return Token(TOKEN_INT, int(parsed_str), pos)
         else:
-            return Token(TOKEN_FLOAT, float(parsed_str))
+            return Token(TOKEN_FLOAT, float(parsed_str), pos)
 
 
 class Node:
@@ -154,19 +158,43 @@ class BinOpNode(Node):
         return f"({self.left}, {self.token}, {self.right})"
 
 
+class ParserPromise:
+    def __init__(self):
+        self.error = None
+        self.node = None
+
+    def register(self, p):
+        if isinstance(p, ParserPromise):
+            if p.error is not None:
+                self.error = p.error
+            return p.node
+        return p
+
+    def resolve(self, node: Node):
+        self.node = node
+        return self
+
+    def reject(self, error: Error):
+        self.error = error
+        return self
+
+
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens: List[Token]):
         self.tokens = tokens
-        self.pos = 0
+        self.curr_idx = 0
         self.curr = tokens[0] if len(tokens) > 0 else None
 
     def next(self):
-        self.pos += 1
-        if self.pos < len(self.tokens):
-            self.curr = self.tokens[self.pos]
+        self.curr_idx += 1
+        if self.curr_idx < len(self.tokens):
+            self.curr = self.tokens[self.curr_idx]
 
     def parse(self):
-        return self.expr()
+        promise = self.expr()
+        if not promise.error and self.curr.type != TOKEN_EOF:
+            return promise.reject(BadSyntaxError("Invalid expression. Expecting at least one operator.", self.curr.pos))
+        return promise
 
     def factor(self):
         """
@@ -174,10 +202,12 @@ class Parser:
         A factor is a single point of data.
         For example, "5" by itself is a factor in a expression.
         """
+        promise = ParserPromise()
         token = self.curr
         if token.type in NUMBER_TOKENS:
-            self.next()
-            return NumberNode(token)
+            promise.register(self.next())
+            return promise.resolve(NumberNode(token))
+        return promise.reject(BadSyntaxError(f"Expecting a number, got '{token}'.", token.pos))
 
     def term(self):
         """
@@ -195,16 +225,20 @@ class Parser:
         """
         return self.bin_op(self.term, [TOKEN_PLUS, TOKEN_MINUS])
 
-    def bin_op(self, func, operations: Iterable[str]) -> BinOpNode:
-        left = func()
+    def bin_op(self, func, operations: Iterable[str]) -> ParserPromise:
+        promise = ParserPromise()
+        left = promise.register(func())
+        if promise.error:
+            return promise
+
         while self.curr.type in operations:
             token = self.curr
-            self.next()
-            right = func()
+            promise.register(self.next())
+            right = promise.register(func())
             # Merge to binary operation tree
             left = BinOpNode(token, left, right)
 
-        return left
+        return promise.resolve(left)
 
 
 def execute(raw: str, fn: str):
@@ -218,4 +252,4 @@ def execute(raw: str, fn: str):
     parser = Parser(tokens)
     ast = parser.parse()
 
-    return ast, None
+    return ast.node, ast.error
