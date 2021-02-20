@@ -71,6 +71,11 @@ class UnexpectedTokenError(Error):
         super().__init__("Unexpected Token", msg, pos)
 
 
+class BadSyntaxError(Error):
+    def __init__(self, msg: str, pos: Position) -> None:
+        super().__init__("Bad Syntax", msg, pos)
+
+
 class Lexer:
     def __init__(self, raw: str, fn: str) -> None:
         self.raw = raw
