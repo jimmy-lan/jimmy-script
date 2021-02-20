@@ -31,6 +31,17 @@ class ParserPromise:
 
 
 class Parser:
+    """
+    A parser takes in a list of tokens and parse the tokens
+    into a abstract syntax tree.
+    """
+    # Tokens to process
+    tokens: List[Token]
+    # Current index in the tokens array
+    curr_idx: int
+    # Current token being processed
+    curr: Token or None
+
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.curr_idx = 0
@@ -56,15 +67,17 @@ class Parser:
         """
         promise = ParserPromise()
         token = self.curr
+
+        # Additional (plus/minus) in front of a factor is
+        # also considered to be a part of the factor.
         if token.type in [TOKEN_PLUS, TOKEN_MINUS]:
             promise.register(self.next())
             factor = promise.register(self.factor())
             if promise.error:
                 return promise
             return promise.resolve(UnaryOpNode(token, factor))
-        elif token.type in NUMBER_TOKENS:
-            promise.register(self.next())
-            return promise.resolve(NumberNode(token))
+        # A bracket with some expressions in it is also considered to be
+        # a factor
         elif token.type == TOKEN_LBRACKET:
             promise.register(self.next())
             expr = promise.register(self.expr())
@@ -76,6 +89,12 @@ class Parser:
             else:
                 error = BadSyntaxError("Missing ')'.", self.curr.interval)
                 return promise.reject(error)
+
+        # A number token by itself is a factor
+        elif token.type in NUMBER_TOKENS:
+            promise.register(self.next())
+            return promise.resolve(NumberNode(token))
+
         return promise.reject(BadSyntaxError(f"Expecting a number, got '{token}'.", token.interval))
 
     def term(self):
