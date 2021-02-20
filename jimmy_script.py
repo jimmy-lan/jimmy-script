@@ -29,6 +29,20 @@ class Token:
         return f"{self.type}: {self.value}" if self.value else f"{self.type}"
 
 
+class Error:
+    def __init__(self, name: str, msg: str) -> None:
+        self.name = name
+        self.msg = msg
+
+    def __str__(self):
+        return f"{self.name}: \n\t{self.msg}"
+
+
+class UnexpectedTokenError(Error):
+    def __init__(self, msg):
+        super("Unexpected Token", msg)
+
+
 class Lexer:
     def __init__(self, expr: str) -> None:
         self.expr = expr
