@@ -1,5 +1,5 @@
 # Token Types
-from typing import Tuple, List
+from typing import Tuple, List, Iterable
 
 TOKEN_INT = "INT"
 TOKEN_FLOAT = "FLOAT"
@@ -21,6 +21,8 @@ CHAR_TO_TOKEN = {
     "(": TOKEN_LBRACKET,
     ")": TOKEN_RBRACKET
 }
+
+NUMBER_TOKENS = (TOKEN_INT, TOKEN_FLOAT)
 
 
 class Token:
@@ -70,16 +72,16 @@ class UnexpectedTokenError(Error):
 
 
 class Lexer:
-    def __init__(self, expr: str, fn: str) -> None:
-        self.expr = expr
+    def __init__(self, raw: str, fn: str) -> None:
+        self.raw = raw
         self.pos = Position(0, 0, 0, fn)
-        self.curr = expr[0] if len(expr) > 0 else None
+        self.curr = raw[0] if len(raw) > 0 else None
 
     def next(self) -> None:
         self.pos.next(self.curr)
         idx = self.pos.idx
-        if idx < len(self.expr):
-            self.curr = self.expr[idx]
+        if idx < len(self.raw):
+            self.curr = self.raw[idx]
         else:
             self.curr = None
 
@@ -124,7 +126,7 @@ class Lexer:
 
 
 class Node:
-    def __init__(self, token: any):
+    def __init__(self, token: Token):
         self.token = token
 
     def __repr__(self):
@@ -132,12 +134,12 @@ class Node:
 
 
 class NumberNode(Node):
-    def __init__(self, token: int or float):
+    def __init__(self, token: Token):
         super().__init__(token)
 
 
 class BinOpNode(Node):
-    def __init__(self, token: str, left: Node, right: Node):
+    def __init__(self, token: Token, left: Node, right: Node):
         super().__init__(token)
         self.left = left
         self.right = right
@@ -146,6 +148,56 @@ class BinOpNode(Node):
         return f"({self.left}, {self.token}, {self.right})"
 
 
-def evaluate(expr: str, fn: str) -> Tuple[List[str], Error or None]:
-    lexer = Lexer(expr, fn)
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.pos = 0
+        self.curr = tokens[0] if len(tokens) > 0 else None
+        self.next()
+
+    def next(self):
+        self.pos += 1
+        if self.pos < len(self.tokens):
+            self.curr = self.tokens[self.pos]
+
+    def factor(self):
+        """
+        Return a node representation of a factor.
+        A factor is a single point of data.
+        For example, "5" by itself is a factor in a expression.
+        """
+        token = self.curr
+        if token.type in NUMBER_TOKENS:
+            self.next()
+            return NumberNode(token)
+
+    def term(self):
+        """
+        Return a node representation of a term.
+        A term is defined to be a factor multiply or divide by another
+        factor.
+        """
+        return self.bin_op(self.factor, [TOKEN_MULTIPLY, TOKEN_DIVISION])
+
+    def expr(self):
+        """
+        Return a node representation of an expression.
+        A term is defined to be a factor plus or minus by another
+        factor.
+        """
+        return self.bin_op(self.factor, [TOKEN_PLUS, TOKEN_MINUS])
+
+    def bin_op(self, func, operations: Iterable[str]) -> BinOpNode:
+        left = func()
+        while self.curr in operations:
+            token = self.curr
+            right = func()
+            # Merge to binary operation tree
+            left = BinOpNode(token, left, right)
+
+        return left
+
+
+def execute(raw: str, fn: str) -> Tuple[List[str], Error or None]:
+    lexer = Lexer(raw, fn)
     return lexer.get_tokens()
