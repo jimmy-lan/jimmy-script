@@ -1,4 +1,6 @@
 # Token Types
+from typing import Tuple, List
+
 TOKEN_INT = "INT"
 TOKEN_FLOAT = "FLOAT"
 TOKEN_PLUS = "PLUS"
@@ -56,7 +58,7 @@ class Lexer:
         else:
             self.curr = None
 
-    def get_tokens(self):
+    def get_tokens(self) -> Tuple[List[str], Error or None]:
         tokens = []
 
         while self.curr is not None:
@@ -67,8 +69,17 @@ class Lexer:
             elif self.curr in CHAR_TO_TOKEN:
                 tokens.append(CHAR_TO_TOKEN[self.curr])
                 self.next()
+            else:
+                token = self.curr
+                pos = self.pos
+                self.next()
+                return [], UnexpectedTokenError(
+                    f"Unexpected token '{token}' at position {pos}."
+                )
 
-    def get_number(self):
+        return tokens, None
+
+    def get_number(self) -> Token:
         parsed_str = ""
         num_dots = 0
 
