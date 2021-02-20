@@ -158,6 +158,15 @@ class BinOpNode(Node):
         return f"({self.left}, {self.token}, {self.right})"
 
 
+class UnaryOpNode(Node):
+    def __init__(self, token: Token, node: Node):
+        super().__init__(token)
+        self.node = node
+
+    def __repr__(self):
+        return f"{self.token}:{self.node}"
+
+
 class ParserPromise:
     def __init__(self):
         self.error = None
