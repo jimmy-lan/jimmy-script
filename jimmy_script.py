@@ -23,7 +23,7 @@ CHAR_TO_TOKEN = {
 
 
 class Token:
-    def __init__(self, t_type: str, value: any) -> None:
+    def __init__(self, t_type: str, value: any = "") -> None:
         self.type = t_type
         self.value = value
 
@@ -41,8 +41,8 @@ class Error:
 
 
 class UnexpectedTokenError(Error):
-    def __init__(self, msg):
-        super("Unexpected Token", msg)
+    def __init__(self, msg, name: str):
+        super().__init__("Unexpected Token", msg)
 
 
 class Lexer:
@@ -95,3 +95,8 @@ class Lexer:
             return Token(TOKEN_INT, int(parsed_str))
         else:
             return Token(TOKEN_FLOAT, float(parsed_str))
+
+
+def evaluate(expr: str) -> Tuple[List[str], Error or None]:
+    lexer = Lexer(expr)
+    return lexer.get_tokens()
