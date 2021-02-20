@@ -85,16 +85,17 @@ class Lexer:
         else:
             self.curr = None
 
-    def get_tokens(self) -> Tuple[List[str], Error or None]:
+    def get_tokens(self) -> Tuple[List[Token], Error or None]:
         tokens = []
 
         while self.curr is not None:
             if self.curr in SPACES:
+                # Ignore, go to the next token
                 self.next()
             elif self.curr in DIGITS:
                 tokens.append(self.get_number())
             elif self.curr in CHAR_TO_TOKEN:
-                tokens.append(CHAR_TO_TOKEN[self.curr])
+                tokens.append(Token(CHAR_TO_TOKEN[self.curr]))
                 self.next()
             else:
                 token = self.curr
@@ -153,12 +154,14 @@ class Parser:
         self.tokens = tokens
         self.pos = 0
         self.curr = tokens[0] if len(tokens) > 0 else None
-        self.next()
 
     def next(self):
         self.pos += 1
         if self.pos < len(self.tokens):
             self.curr = self.tokens[self.pos]
+
+    def parse(self):
+        return self.expr()
 
     def factor(self):
         """
@@ -185,12 +188,13 @@ class Parser:
         A term is defined to be a factor plus or minus by another
         factor.
         """
-        return self.bin_op(self.factor, [TOKEN_PLUS, TOKEN_MINUS])
+        return self.bin_op(self.term, [TOKEN_PLUS, TOKEN_MINUS])
 
     def bin_op(self, func, operations: Iterable[str]) -> BinOpNode:
         left = func()
-        while self.curr in operations:
+        while self.curr.type in operations:
             token = self.curr
+            self.next()
             right = func()
             # Merge to binary operation tree
             left = BinOpNode(token, left, right)
@@ -198,6 +202,15 @@ class Parser:
         return left
 
 
-def execute(raw: str, fn: str) -> Tuple[List[str], Error or None]:
+def execute(raw: str, fn: str):
+    # Get tokens from laxer
     lexer = Lexer(raw, fn)
-    return lexer.get_tokens()
+    tokens, error = lexer.get_tokens()
+    if error:
+        return None, error
+
+    # Get abstract syntax tree
+    parser = Parser(tokens)
+    ast = parser.parse()
+
+    return ast, None
