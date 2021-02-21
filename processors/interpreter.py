@@ -1,3 +1,4 @@
+from errors.interpret_error import InterpretError
 from models.context import ExecutionContext
 from models.token import *
 from nodes.bin_op_node import BinOpNode
@@ -65,6 +66,17 @@ class Interpreter:
 
         result.interval = node.interval
         return promise.resolve(result)
+
+    def traverse_VarAccessNode(self, node: Node, context: ExecutionContext):
+        promise = InterpreterPromise()
+        identifier = node.token.value
+        var_value = context.variable_register.get(identifier)
+        if not var_value:
+            promise.reject(InterpretError(f"Unknown identifier '{identifier}'.", node.interval, context))
+
+        return promise.resolve(var_value)
+
+
 
     def traverse_fallback(self, node) -> None:
         raise Exception(f"No method for {type(node).__name__} defined.")
