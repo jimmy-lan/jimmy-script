@@ -43,5 +43,10 @@ class Number:
             return None, InterpretError("Cannot divide by 0.", other.interval, self.context)
         return Number(self.value / other.value, context=self.context), None
 
+    def power(self, other):
+        if not isinstance(other, Number):
+            return
+        return Number(self.value ** other.value, context=self.context), None
+
     def __repr__(self):
         return str(self.value)

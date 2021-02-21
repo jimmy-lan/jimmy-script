@@ -37,26 +37,13 @@ class Parser:
             return promise.reject(error)
         return promise
 
-    def factor(self):
-        """
-        Return a node representation of a factor.
-        A factor is a single point of data.
-        For example, "5" by itself is a factor in a expression.
-        """
+    def atom(self):
         promise = ParserPromise()
         token = self.curr
 
-        # Additional (plus/minus) in front of a factor is
-        # also considered to be a part of the factor.
-        if token.type in [TOKEN_PLUS, TOKEN_MINUS]:
-            promise.register(self.next())
-            factor = promise.register(self.factor())
-            if promise.error:
-                return promise
-            return promise.resolve(UnaryOpNode(token, factor))
         # A bracket with some expressions in it is also considered to be
         # a factor
-        elif token.type == TOKEN_LBRACKET:
+        if token.type == TOKEN_LBRACKET:
             promise.register(self.next())
             expr = promise.register(self.expr())
             if promise.error:
@@ -73,7 +60,29 @@ class Parser:
             promise.register(self.next())
             return promise.resolve(NumberNode(token))
 
-        return promise.reject(BadSyntaxError(f"Expecting a number, got '{token}'.", token.interval))
+        return promise.reject(BadSyntaxError(f"Expecting a number, sign, or bracket.", token.interval))
+
+    def power(self):
+        return self.bin_op(self.atom, [TOKEN_POWER], self.factor)
+
+    def factor(self):
+        """
+        Return a node representation of a factor.
+        A factor is a number with plus or minus sign.
+        """
+        promise = ParserPromise()
+        token = self.curr
+
+        # Additional (plus/minus) in front of a factor is
+        # also considered to be a part of the factor.
+        if token.type in [TOKEN_PLUS, TOKEN_MINUS]:
+            promise.register(self.next())
+            factor = promise.register(self.factor())
+            if promise.error:
+                return promise
+            return promise.resolve(UnaryOpNode(token, factor))
+
+        return self.power()
 
     def term(self):
         """
@@ -91,16 +100,21 @@ class Parser:
         """
         return self.bin_op(self.term, [TOKEN_PLUS, TOKEN_MINUS])
 
-    def bin_op(self, func, operations) -> ParserPromise:
+    def bin_op(self, left_func, operations, right_func=None) -> ParserPromise:
+        if right_func is None:
+            right_func = left_func
+
         promise = ParserPromise()
-        left = promise.register(func())
+        left = promise.register(left_func())
         if promise.error:
             return promise
 
         while self.curr.type in operations:
             token = self.curr
             promise.register(self.next())
-            right = promise.register(func())
+            right = promise.register(right_func())
+            if promise.error:
+                return promise
             # Merge to binary operation tree
             left = BinOpNode(token, left, right)
 

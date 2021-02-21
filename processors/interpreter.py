@@ -41,6 +41,8 @@ class Interpreter:
             result, error = left.multiply(right)
         elif op_type == TOKEN_DIVISION:
             result, error = left.divide(right)
+        elif op_type == TOKEN_POWER:
+            result, error = left.power(right)
         else:
             raise Exception(f"Unknown token type '{op_type}' not handled by parser.")
 
