@@ -16,6 +16,8 @@ class ParserPromise(Promise):
         self.node = None
 
     def register(self, promise):
+        if promise is None:
+            return
         if isinstance(promise, ParserPromise):
             if promise.error is not None:
                 self.error = promise.error
@@ -37,6 +39,8 @@ class InterpreterPromise(Promise):
         self.error = None
 
     def register(self, promise):
+        if promise is None:
+            return
         if isinstance(promise, InterpreterPromise):
             if promise.error:
                 self.error = promise.error

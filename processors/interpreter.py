@@ -76,6 +76,8 @@ class Interpreter:
         if var_value is None:
             promise.reject(InterpretError(f"Unknown identifier '{identifier}'.", node.interval, context))
 
+        var_value: Number = var_value.copy()
+        var_value.interval = node.interval
         return promise.resolve(var_value)
 
     def traverse_VarAssignNode(self, node: VarAssignNode, context: ExecutionContext):
