@@ -5,6 +5,8 @@ from nodes.bin_op_node import BinOpNode
 from nodes.number_node import NumberNode
 from nodes.unary_op_node import UnaryOpNode
 from models.token import *
+from nodes.var_access_node import VarAccessNode
+from nodes.var_assign_node import VarAssignNode
 from processors.promises import ParserPromise
 
 
@@ -38,11 +40,15 @@ class Parser:
         return promise
 
     def atom(self):
+        """
+        An "atom" is a number by itself or an open bracket followed by some expression then
+        followed by a closing bracket.
+        """
         promise = ParserPromise()
         token = self.curr
 
         # A bracket with some expressions in it is also considered to be
-        # a factor
+        # an "atom" node.
         if token.type == TOKEN_LBRACKET:
             promise.register(self.next())
             expr = promise.register(self.expr())
@@ -55,10 +61,15 @@ class Parser:
                 error = BadSyntaxError("Missing ')'.", self.curr.interval)
                 return promise.reject(error)
 
-        # A number token by itself is a factor
+        # A number token by itself is an "atom" node
         elif token.type in NUMBER_TOKENS:
             promise.register(self.next())
             return promise.resolve(NumberNode(token))
+
+        # A variable is considered to be an "atom" node.
+        elif token.type == TOKEN_IDENTIFIER:
+            promise.register(self.next())
+            return promise.resolve(VarAccessNode(token))
 
         return promise.reject(BadSyntaxError(f"Expecting a number, sign, or bracket.", token.interval))
 
@@ -98,6 +109,31 @@ class Parser:
         A term is defined to be a factor plus or minus by another
         factor.
         """
+        promise = ParserPromise()
+
+        # Evaluate variable assignment grammar:
+        # let `identifier` = `expr`, OR,
+        # let `identifier` be `expr`.
+        if self.curr == Token(TOKEN_KEYWORD, "let"):
+            promise.register(self.next())
+
+            if self.curr.type != TOKEN_IDENTIFIER:
+                return promise.reject(
+                    BadSyntaxError("Identifier expected after let keyword.", self.curr.interval))
+
+            identifier = self.curr
+            promise.register(self.next())
+
+            if self.curr.type != TOKEN_ASSIGNMENT and \
+                    self.curr.type != TOKEN_KEYWORD:
+                return promise.reject(BadSyntaxError(f"Invalid assignment operator {self.curr}.", self.curr.interval))
+
+            promise.register(self.next())
+            expr = promise.register(self.expr())
+            if promise.error:
+                return promise
+            return promise.resolve(VarAssignNode(identifier, expr))
+
         return self.bin_op(self.term, [TOKEN_PLUS, TOKEN_MINUS])
 
     def bin_op(self, left_func, operations, right_func=None) -> ParserPromise:

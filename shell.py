@@ -28,4 +28,4 @@ if __name__ == "__main__":
         if error:
             print(error)
         else:
-            print(result)
+            print(result) if result is not None else None

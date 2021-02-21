@@ -48,5 +48,8 @@ class Number:
             return
         return Number(self.value ** other.value, context=self.context), None
 
+    def copy(self):
+        return Number(self.value, self.interval, self.context)
+
     def __repr__(self):
         return str(self.value)
