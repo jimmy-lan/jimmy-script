@@ -5,6 +5,8 @@ from nodes.bin_op_node import BinOpNode
 from nodes.number_node import NumberNode
 from nodes.unary_op_node import UnaryOpNode
 from models.token import *
+from nodes.var_access_node import VarAccessNode
+from nodes.var_assign_node import VarAssignNode
 from processors.promises import ParserPromise
 
 
@@ -122,7 +124,7 @@ class Parser:
             identifier = self.curr
             promise.register(self.next())
 
-            if self.curr.type != TOKEN_ASSIGNMENT or \
+            if self.curr.type != TOKEN_ASSIGNMENT and \
                     self.curr.type != TOKEN_KEYWORD:
                 return promise.reject(BadSyntaxError(f"Invalid assignment operator {self.curr}.", self.curr.interval))
 

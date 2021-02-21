@@ -5,6 +5,8 @@ from nodes.bin_op_node import BinOpNode
 from nodes.node import Node
 from nodes.number_node import NumberNode
 from nodes.unary_op_node import UnaryOpNode
+from nodes.var_access_node import VarAccessNode
+from nodes.var_assign_node import VarAssignNode
 from processors.promises import InterpreterPromise
 from values.number import Number
 
@@ -67,16 +69,24 @@ class Interpreter:
         result.interval = node.interval
         return promise.resolve(result)
 
-    def traverse_VarAccessNode(self, node: Node, context: ExecutionContext):
+    def traverse_VarAccessNode(self, node: VarAccessNode, context: ExecutionContext):
         promise = InterpreterPromise()
         identifier = node.token.value
         var_value = context.variable_register.get(identifier)
-        if not var_value:
+        if var_value is None:
             promise.reject(InterpretError(f"Unknown identifier '{identifier}'.", node.interval, context))
 
         return promise.resolve(var_value)
 
+    def traverse_VarAssignNode(self, node: VarAssignNode, context: ExecutionContext):
+        promise = InterpreterPromise()
+        identifier = node.token.value
+        var_value = promise.register(self.traverse(node.value_node, context))
+        if promise.error:
+            return promise
 
+        context.variable_register.set(identifier, var_value)
+        return promise.resolve(None)
 
     def traverse_fallback(self, node) -> None:
         raise Exception(f"No method for {type(node).__name__} defined.")

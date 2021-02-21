@@ -37,9 +37,11 @@ class InterpreterPromise(Promise):
         self.error = None
 
     def register(self, promise):
-        if promise.error:
-            self.error = promise.error
-        return promise.value
+        if isinstance(promise, InterpreterPromise):
+            if promise.error:
+                self.error = promise.error
+            return promise.value
+        return promise
 
     def resolve(self, value):
         self.value = value
