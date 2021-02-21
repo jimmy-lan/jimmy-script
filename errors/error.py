@@ -17,4 +17,4 @@ class Error:
     def __str__(self) -> str:
         return f"{self.name}: " \
                f"\n\t{self.msg}" \
-               f"\nAt Line {self.interval.start.row + 1} in File {self.interval.file.name}."
+               f"\nAt Line {self.interval.start.row + 1} in File {self.interval.file.name}.\n"

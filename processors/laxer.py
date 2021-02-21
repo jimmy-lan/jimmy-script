@@ -1,13 +1,25 @@
 from typing import Tuple, List
 
-from constants import SPACES, DIGITS
 from errors.error import Error
 from errors.unexpected_token_error import UnexpectedTokenError
-from models.position import Position, Interval, File
-from models.token import Token, TOKEN_EOF, TOKEN_INT, TOKEN_FLOAT
+from models.position import *
+from models.token import *
 
 
 class Lexer:
+    """
+    A laxer takes in a raw piece of code (it can be single line or
+    multi-line) and breaks it down to an array of tokens.
+    """
+    # The raw text to process
+    raw: str
+    # Current processing position
+    pos: Position
+    # Current processing character
+    curr: str or None
+    # File context
+    file: File
+
     def __init__(self, raw: str, file: File) -> None:
         self.raw = raw
         self.pos = Position(0, 0, 0)
