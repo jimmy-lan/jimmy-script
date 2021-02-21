@@ -1,4 +1,5 @@
 from models.position import Interval
+from models.variable_register import VariableRegister
 
 
 class ExecutionContext:
@@ -13,8 +14,11 @@ class ExecutionContext:
     parent: any
     # Parent code position
     parent_interval: Interval
+    # Variable table
+    variable_register: VariableRegister or None
 
     def __init__(self, name: str, parent: any = None, parent_interval: Interval = None):
         self.name = name
         self.parent_interval = parent_interval
         self.parent = parent
+        self.variable_register = None
