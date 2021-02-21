@@ -74,7 +74,7 @@ class Interpreter:
         identifier = node.token.value
         var_value = context.variable_register.get(identifier)
         if var_value is None:
-            promise.reject(InterpretError(f"Unknown identifier '{identifier}'.", node.interval, context))
+            return promise.reject(InterpretError(f"Unknown identifier '{identifier}'.", node.interval, context))
 
         var_value: Number = var_value.copy()
         var_value.interval = node.interval
