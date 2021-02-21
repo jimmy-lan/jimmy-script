@@ -37,7 +37,7 @@ EXPR_TOKENS = (TOKEN_MULTIPLY, TOKEN_DIVISION)
 
 ASSIGNMENT_OP = ["=", "<-", "be"]
 KEYWORDS = [
-    "let"
+    "let",
 ]
 
 

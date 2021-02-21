@@ -24,6 +24,10 @@ if __name__ == "__main__":
     print_banner()
     while True:
         expr = input("jimmy-script > ")
+        if expr.strip().lower() == "exit":
+            print("Goodbye!")
+            exit(0)
+
         result, error = jimmy_script.execute(expr, "<stdin>")
         if error:
             print(error)
