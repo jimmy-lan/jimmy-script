@@ -1,5 +1,6 @@
 from typing import Optional
 
+from errors.interpret_error import InterpretError
 from models.position import Interval
 
 
@@ -19,22 +20,24 @@ class Number:
     def add(self, other):
         if not isinstance(other, Number):
             return
-        return Number(self.value + other.value)
+        return Number(self.value + other.value), None
 
     def subtract(self, other):
         if not isinstance(other, Number):
             return
-        return Number(self.value - other.value)
+        return Number(self.value - other.value), None
 
     def multiply(self, other):
         if not isinstance(other, Number):
             return
-        return Number(self.value * other.value)
+        return Number(self.value * other.value), None
 
     def divide(self, other):
         if not isinstance(other, Number):
             return
-        return Number(self.value / other.value)
+        if other.value == 0:
+            return None, InterpretError("Cannot divide by 0.", other.interval)
+        return Number(self.value / other.value), None
 
     def __repr__(self):
         return str(self.value)

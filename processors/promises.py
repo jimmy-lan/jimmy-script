@@ -43,8 +43,8 @@ class InterpreterPromise(Promise):
 
     def resolve(self, value):
         self.value = value
-        return self.value
+        return self
 
     def reject(self, error):
         self.error = error
-        return self.error
+        return self

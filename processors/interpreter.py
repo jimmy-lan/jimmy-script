@@ -8,7 +8,7 @@ from values.number import Number
 
 
 class Interpreter:
-    def traverse(self, node: Node):
+    def traverse(self, node: Node) -> InterpreterPromise:
         """
         Traverse AST rooted at `node`.
         """

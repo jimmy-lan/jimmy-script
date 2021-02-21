@@ -24,4 +24,4 @@ def execute(raw: str, fn: str):
     interpreter = Interpreter()
     result = interpreter.traverse(ast.node)
 
-    return result, None
+    return result.value, result.error
