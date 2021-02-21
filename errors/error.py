@@ -1,4 +1,5 @@
 from models.position import Interval
+from utils import arrows_under_string
 
 
 class Error:
@@ -17,4 +18,5 @@ class Error:
     def __str__(self) -> str:
         return f"{self.name}: " \
                f"\n\t{self.msg}" \
-               f"\nAt Line {self.interval.start.row + 1} in File {self.interval.file.name}.\n"
+               f"\nAt Line {self.interval.start.row + 1} in File {self.interval.file.name}.\n\n" \
+               f">>> {arrows_under_string(self.interval.file.content, self.interval, 4)}\n"
