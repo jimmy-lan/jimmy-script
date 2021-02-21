@@ -1,33 +1,11 @@
 from typing import List
 
 from errors.bad_syntax_error import BadSyntaxError
-from errors.error import Error
 from nodes.bin_op_node import BinOpNode
-from nodes.node import Node
 from nodes.number_node import NumberNode
 from nodes.unary_op_node import UnaryOpNode
 from models.token import *
-
-
-class ParserPromise:
-    def __init__(self):
-        self.error = None
-        self.node = None
-
-    def register(self, promise):
-        if isinstance(promise, ParserPromise):
-            if promise.error is not None:
-                self.error = promise.error
-            return promise.node
-        return promise
-
-    def resolve(self, node: Node):
-        self.node = node
-        return self
-
-    def reject(self, error: Error):
-        self.error = error
-        return self
+from processors.promises import ParserPromise
 
 
 class Parser:
