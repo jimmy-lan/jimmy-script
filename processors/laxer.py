@@ -27,12 +27,18 @@ class Lexer:
         self.file = file
 
     def next(self) -> None:
+        """ Move on to the next character. """
         self.pos.next(self.curr)
         idx = self.pos.idx
         if idx < len(self.raw):
             self.curr = self.raw[idx]
         else:
             self.curr = None
+
+    def revert(self, pos: Position) -> None:
+        """ Revert to a character position. """
+        self.pos = pos
+        self.curr = self.raw[self.pos.idx]
 
     def get_tokens(self) -> Tuple[List[Token], Error or None]:
         tokens = []
@@ -43,21 +49,71 @@ class Lexer:
             if self.curr in SPACES:
                 # Ignore, go to the next token
                 self.next()
-            elif self.curr in DIGITS:
+                continue
+            # The order of this if statement is important
+            if self.curr in ASSIGNMENT_OP_CHAR:
+                token = self.get_assignment()
+                # If token is none, we revert position and continue to
+                # cases below to see if there is a match.
+                if token is not None:
+                    tokens.append(token)
+                    continue
+            if self.curr in DIGITS:
                 tokens.append(self.get_number())
-            elif Token.is_op_char(self.curr):
+                continue
+            if self.curr in LETTERS:
+                tokens.append(self.get_identifier())
+                continue
+            if Token.is_op_char(self.curr):
                 token_type = Token.map_char_to_type(self.curr)
                 tokens.append(Token(token_type, interval=token_interval))
                 self.next()
-            else:
-                self.next()
-                return [], UnexpectedTokenError(
-                    f"Unexpected token '{self.curr}'.",
-                    token_interval
-                )
+                continue
+
+            # Unexpected character
+            unexpected_token = self.curr
+            self.next()
+            return [], UnexpectedTokenError(
+                f"Unexpected token '{unexpected_token}'.",
+                token_interval
+            )
 
         tokens.append(Token(TOKEN_EOF, interval=Interval.from_position(self.pos, self.file)))
         return tokens, None
+
+    def get_identifier(self) -> Token:
+        parsed_str = ""
+        start_pos = self.pos.copy()
+
+        while self.curr is not None and self.curr in IDENTIFIER_CHAR:
+            parsed_str += self.curr
+            self.next()
+
+        # Keywords in Jimmy Script will not be case sensitive
+        parsed_str = parsed_str.lower()
+        if parsed_str in KEYWORDS:
+            token_type = TOKEN_KEYWORD
+        else:
+            token_type = TOKEN_IDENTIFIER
+
+        end_pos = self.pos.copy()
+        interval = Interval(start_pos, end_pos, self.file)
+        return Token(token_type, parsed_str, interval)
+
+    def get_assignment(self) -> Token or None:
+        parsed_str = ""
+        start_pos = self.pos.copy()
+
+        while self.curr is not None and self.curr in ASSIGNMENT_OP_CHAR:
+            parsed_str += self.curr
+            self.next()
+
+        if parsed_str in ASSIGNMENT_OP:
+            end_pos = self.pos.copy()
+            interval = Interval(start_pos, end_pos, self.file)
+            return Token(TOKEN_ASSIGNMENT, parsed_str, interval)
+        else:
+            return self.revert(start_pos)
 
     def get_number(self) -> Token:
         parsed_str = ""

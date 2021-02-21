@@ -5,13 +5,20 @@ from models.position import Interval
 ################################
 TOKEN_INT = "INT"
 TOKEN_FLOAT = "FLOAT"
+
 TOKEN_PLUS = "PLUS"
 TOKEN_MINUS = "MINUS"
 TOKEN_MULTIPLY = "MULTIPLY"
 TOKEN_DIVISION = "DIVISION"
 TOKEN_POWER = "POWER"
+
 TOKEN_LBRACKET = "LBRACKET"
 TOKEN_RBRACKET = "RBRACKET"
+
+TOKEN_IDENTIFIER = "IDENTIFIER"
+TOKEN_KEYWORD = "KEYWORD"
+TOKEN_ASSIGNMENT = "ASSIGNMENT"
+
 TOKEN_EOF = "EOF"
 
 TOKEN_MAP = {
@@ -21,12 +28,17 @@ TOKEN_MAP = {
     "/": TOKEN_DIVISION,
     "^": TOKEN_POWER,
     "(": TOKEN_LBRACKET,
-    ")": TOKEN_RBRACKET
+    ")": TOKEN_RBRACKET,
 }
 
 NUMBER_TOKENS = (TOKEN_INT, TOKEN_FLOAT)
 TERM_TOKENS = (TOKEN_PLUS, TOKEN_MINUS)
 EXPR_TOKENS = (TOKEN_MULTIPLY, TOKEN_DIVISION)
+
+ASSIGNMENT_OP = ["=", "<-", "be"]
+KEYWORDS = [
+    "let"
+]
 
 
 ################################
@@ -56,3 +68,6 @@ class Token:
 
     def __repr__(self) -> str:
         return f"{self.type}: {self.value}" if self.value else f"{self.type}"
+
+    def __eq__(self, other):
+        return self.type == other.type and self.value == other.value
