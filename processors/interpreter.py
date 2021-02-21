@@ -1,3 +1,4 @@
+from models.context import ExecutionContext
 from models.token import *
 from nodes.bin_op_node import BinOpNode
 from nodes.node import Node
@@ -8,7 +9,7 @@ from values.number import Number
 
 
 class Interpreter:
-    def traverse(self, node: Node) -> InterpreterPromise:
+    def traverse(self, node: Node, context: ExecutionContext) -> InterpreterPromise:
         """
         Traverse AST rooted at `node`.
         """
@@ -16,18 +17,18 @@ class Interpreter:
         traverse_method_name = f"traverse_{type(node).__name__}"
         traverse_method = getattr(self, traverse_method_name, self.traverse_fallback)
         # Execute method
-        return traverse_method(node)
+        return traverse_method(node, context)
 
-    def traverse_NumberNode(self, node: NumberNode) -> InterpreterPromise:
+    def traverse_NumberNode(self, node: NumberNode, context: ExecutionContext) -> InterpreterPromise:
         token = node.token
-        return InterpreterPromise().resolve(Number(token.value, token.interval))
+        return InterpreterPromise().resolve(Number(token.value, token.interval, context))
 
-    def traverse_BinOpNode(self, node: BinOpNode) -> InterpreterPromise:
+    def traverse_BinOpNode(self, node: BinOpNode, context: ExecutionContext) -> InterpreterPromise:
         promise = InterpreterPromise()
-        left: Number = promise.register(self.traverse(node.left))
+        left: Number = promise.register(self.traverse(node.left, context))
         if promise.error:
             return promise
-        right: Number = promise.register(self.traverse(node.right))
+        right: Number = promise.register(self.traverse(node.right, context))
         if promise.error:
             return promise
 
@@ -49,9 +50,9 @@ class Interpreter:
         result.interval = node.interval
         return promise.resolve(result)
 
-    def traverse_UnaryOpNode(self, node: UnaryOpNode) -> InterpreterPromise:
+    def traverse_UnaryOpNode(self, node: UnaryOpNode, context: ExecutionContext) -> InterpreterPromise:
         promise = InterpreterPromise()
-        result = promise.register(self.traverse(node.child))
+        result = promise.register(self.traverse(node.child, context))
         if promise.error:
             return promise
 

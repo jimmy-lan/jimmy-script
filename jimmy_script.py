@@ -1,3 +1,4 @@
+from models.context import ExecutionContext
 from models.position import File
 from processors.interpreter import Interpreter
 from processors.laxer import Lexer
@@ -22,6 +23,7 @@ def execute(raw: str, fn: str):
 
     # Interpret AST
     interpreter = Interpreter()
-    result = interpreter.traverse(ast.node)
+    execution_context = ExecutionContext("main program")
+    result = interpreter.traverse(ast.node, execution_context)
 
     return result.value, result.error

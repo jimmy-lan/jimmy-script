@@ -1,4 +1,4 @@
-from models.position import Position
+from models.position import Interval
 
 
 class ExecutionContext:
@@ -9,12 +9,12 @@ class ExecutionContext:
     """
     # Name of context
     name: str
-    # Parent of context
+    # Parent context
     parent: any
     # Parent code position
-    parent_pos: Position
+    parent_interval: Interval
 
-    def __init__(self, name: str, parent: any = None, parent_pos: Position = None):
+    def __init__(self, name: str, parent: any = None, parent_interval: Interval = None):
         self.name = name
-        self.parent_pos = parent_pos
+        self.parent_interval = parent_interval
         self.parent = parent
