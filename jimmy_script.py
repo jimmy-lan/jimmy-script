@@ -22,6 +22,6 @@ def execute(raw: str, fn: str):
 
     # Interpret AST
     interpreter = Interpreter()
-    interpreter.traverse(ast.node)
+    result = interpreter.traverse(ast.node)
 
-    return None, None
+    return result, None

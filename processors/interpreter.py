@@ -17,11 +17,11 @@ class Interpreter:
         # Execute method
         return traverse_method(node)
 
-    def traverse_NumberNode(self, node: NumberNode):
+    def traverse_NumberNode(self, node: NumberNode) -> Number:
         token = node.token
         return Number(token.value, token.interval)
 
-    def traverse_BinOpNode(self, node: BinOpNode):
+    def traverse_BinOpNode(self, node: BinOpNode) -> Number:
         left: Number = self.traverse(node.left)
         right: Number = self.traverse(node.right)
 
@@ -40,7 +40,7 @@ class Interpreter:
         result.interval = node.interval
         return result
 
-    def traverse_UnaryOpNode(self, node: UnaryOpNode):
+    def traverse_UnaryOpNode(self, node: UnaryOpNode) -> Number:
         result = self.traverse(node.child)
 
         if node.token.type == TOKEN_MINUS:
@@ -49,5 +49,5 @@ class Interpreter:
         result.interval = node.interval
         return result
 
-    def traverse_fallback(self, node):
+    def traverse_fallback(self, node) -> None:
         raise Exception(f"No method for {type(node).__name__} defined.")
